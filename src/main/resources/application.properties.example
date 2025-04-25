@@ -10,9 +10,8 @@ spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.Strin
 spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
 
 
-# csv file path
-csv.file.path=/home/zhongwei/Data_ingestion/Embdi/EmbDI datasets/er datasets/fodors_zagats.csv
-# csv.file.path=/home/zhongwei/Data_ingestion/Embdi/EmbDI datasets/er datasets/amazon_google.csv
+# csv file path info
+# csv.file.path=<your file path>
 csv.file.timeout=100
 
 # Config for log files, remember to set up your own path of log files in "logging.file.name"
