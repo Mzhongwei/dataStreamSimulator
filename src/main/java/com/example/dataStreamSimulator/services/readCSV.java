@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 
 @Service
 public class readCSV implements CommandLineRunner{
@@ -38,25 +41,25 @@ public class readCSV implements CommandLineRunner{
         checkPath(pathCSV);
     }
 
-    private void readData(String pathCSV) throws FileNotFoundException, IOException{
-        try (BufferedReader br = new BufferedReader(new FileReader(pathCSV))) {
-            String line;
-            line = br.readLine();
-            String[] headersValues = line.split(",");
-            while ((line = br.readLine()) != null) {
-                logger.info("[begin] start putting data into kafka producer...");
+    private void readData(String pathCSV) throws FileNotFoundException, IOException, CsvValidationException{
+
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(pathCSV)).build()) {
+            String [] nextLine;
+            String[] headersValues = reader.readNext();
+            while ((nextLine = reader.readNext()) != null) {
+                logger.info("[stream] put data into kafka producer...");
                 ObjectNode jsonvalue = objectMapper.createObjectNode();
-                String[] values = line.split(",");
-                for(int j=0; j<values.length; j++){
-                    jsonvalue.put(headersValues[j], values[j]);
+                int len = Math.min(headersValues.length, nextLine.length);
+                for(int j=0; j<len; j++){
+                    jsonvalue.put(headersValues[j], nextLine[j]);
                 }
-                logger.debug("[sent] json object to kafka producer: " + jsonvalue);
+                logger.info("[sent] json object to kafka producer: " + jsonvalue);
                 kafkaProducerService.sendMessage(jsonvalue);
                 
                 // ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 // scheduler.scheduleAtFixedRate(() -> {
                 //     kafkaProducerService.sendMessage(jsonvalue);
-                // }, 0, 1, TimeUnit.SECONDS);
+                // }, 0, 1, TimeUnit.SECONDS);c
 
                 try {
                     Thread.sleep(timeout);
